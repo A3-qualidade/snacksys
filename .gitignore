@@ -1,0 +1,9 @@
+# Configurações locais do IntelliJ
+.idea/
+*.iml
+
+# Arquivos gerados na compilação pelo Maven
+target/
+
+# Arquivos do macOS
+.DS_Store
