@@ -26,5 +26,12 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Executar testes
+      - name: Executar testes e gerar cobertura
         run: ./mvnw -B clean verify
+
+      - name: Armazenar relatorio JaCoCo
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-jacoco
+          path: target/site/jacoco/
+          if-no-files-found: error
