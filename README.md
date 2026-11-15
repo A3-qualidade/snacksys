@@ -92,6 +92,28 @@ Não altere migrações que já foram executadas.
 
 Cada integrante possui seu próprio banco local. A estrutura é compartilhada pelo GitHub, mas os dados são independentes.
 
+## Dados iniciais de desenvolvimento (opcional)
+
+Após iniciar a aplicação pela primeira vez e executar as migrações do Flyway, é possível popular o banco de dados com produtos fictícios para desenvolvimento e testes.
+
+Execute os seguintes comandos:
+
+```powershell
+docker compose cp scripts/dev/dados_iniciais.sql postgres:/tmp/dados_iniciais.sql
+docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U snacksys -d snacksys -f /tmp/dados_iniciais.sql
+```
+
+O script disponibiliza:
+
+- 4 categorias;
+- 16 produtos;
+- 12 produtos com controle de estoque;
+- 4 produtos sem controle de estoque.
+
+A execução é opcional e não faz parte das migrações do Flyway.
+
+Os produtos, preços e quantidades são provisórios. A reexecução do script não deve duplicar os produtos iniciais nem sobrescrever os estoques existentes.
+
 ### Testes automatizados
 
 Com o banco em funcionamento e a variável de ambiente da senha configurada, execute:
