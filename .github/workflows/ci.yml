@@ -15,6 +15,26 @@ jobs:
     name: Build and Test
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: snacksys
+          POSTGRES_USER: snacksys
+          POSTGRES_PASSWORD: snacksys_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U snacksys -d snacksys"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_URL: jdbc:postgresql://localhost:5432/snacksys
+      DB_USER: snacksys
+      POSTGRES_PASSWORD: snacksys_ci
+
     steps:
       - name: Baixar codigo
         uses: actions/checkout@v4
