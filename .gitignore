@@ -7,3 +7,8 @@ target/
 
 # Arquivos do macOS
 .DS_Store
+
+# Configuracoes locais e senhas
+.env
+.env.*
+!.env.example
