@@ -30,7 +30,7 @@ class PedidoOperacaoServiceTest {
     }
 
     @Test
-    @DisplayName("RN05: Deve avanÃ§ar status do pedido quando transiÃ§Ã£o for vÃ¡lida")
+    @DisplayName("RN05: Deve avançar status do pedido quando transição for válida")
     void avancarStatus_quandoTransicaoValida_atualizaStatusDoPedido() {
         // Arrange
         Pedido pedido = criarPedidoValido();
@@ -43,7 +43,7 @@ class PedidoOperacaoServiceTest {
     }
 
     @Test
-    @DisplayName("RN05: Deve percorrer fluxo completo atÃ© ENTREGUE")
+    @DisplayName("RN05: Deve percorrer fluxo completo até ENTREGUE")
     void avancarStatus_quandoFluxoCompletoDeOperacao_percorreTodosOsEstados() {
         // Arrange
         Pedido pedido = criarPedidoValido();
@@ -63,7 +63,7 @@ class PedidoOperacaoServiceTest {
     }
 
     @Test
-    @DisplayName("RN05: Deve lanÃ§ar exceÃ§Ã£o ao tentar transiÃ§Ã£o invÃ¡lida")
+    @DisplayName("RN05: Deve lançar exceção ao tentar transição inválida")
     void avancarStatus_quandoTransicaoInvalida_lancaExcecao() {
         // Arrange
         Pedido pedido = criarPedidoValido();
@@ -89,7 +89,7 @@ class PedidoOperacaoServiceTest {
     }
 
     @Test
-    @DisplayName("RN07: Deve impedir cancelamento quando pedido jÃ¡ estÃ¡ em preparo")
+    @DisplayName("RN07: Deve impedir cancelamento quando pedido já está em preparo")
     void avancarStatus_quandoTentativaDeCancelarEmPreparo_lancaExcecao() {
         // Arrange
         Pedido pedido = criarPedidoValido();
