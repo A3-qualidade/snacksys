@@ -1,5 +1,12 @@
 package br.com.snacksys.pedido;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
@@ -8,16 +15,32 @@ import java.util.Objects;
  * Item de um pedido. Guarda uma cópia do preço do produto no momento da
  * confirmação (RN03), então mudanças posteriores no cardápio não afetam o pedido.
  */
-public final class ItemPedido {
+@Entity
+@Table(name = "itens_pedido")
+public class ItemPedido {
 
     public static final int QUANTIDADE_MINIMA = 1;
     public static final int QUANTIDADE_MAXIMA = 10;
     static final int CASAS_DECIMAIS = 2;
 
-    private final Long produtoId;
-    private final int quantidade;
-    private final BigDecimal precoUnitario;
-    private final BigDecimal subtotal;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "produto_id", nullable = false)
+    private Long produtoId;
+
+    @Column(nullable = false)
+    private int quantidade;
+
+    @Column(name = "preco_unitario", nullable = false, precision = 12, scale = 2)
+    private BigDecimal precoUnitario;
+
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal subtotal;
+
+    protected ItemPedido() {
+    }
 
     public ItemPedido(Long produtoId, int quantidade, BigDecimal precoUnitario) {
         this.produtoId = Objects.requireNonNull(produtoId, "produtoId é obrigatório");
@@ -43,12 +66,15 @@ public final class ItemPedido {
             throw new RegraNegocioException("RN03", "preço unitário não pode ser negativo");
         }
         try {
-            // Escala fixa em centavos; não arredonda para não esconder erro de cadastro
             return preco.setScale(CASAS_DECIMAIS, RoundingMode.UNNECESSARY);
         } catch (ArithmeticException e) {
             throw new RegraNegocioException("RN03",
                     "preço unitário com mais de " + CASAS_DECIMAIS + " casas decimais: " + preco);
         }
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public Long getProdutoId() {
