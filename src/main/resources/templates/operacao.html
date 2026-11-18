@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>SnackSys - Painel de Operação</title>
+</head>
+<body>
+<h1>Painel de Operação de Pedidos</h1>
+
+<div th:if="${sucesso}" th:text="${sucesso}" style="color: green;"></div>
+<div th:if="${erro}" th:text="${erro}" style="color: red;"></div>
+
+<table border="1" cellpadding="6">
+    <thead>
+    <tr>
+        <th>Senha</th>
+        <th>Cliente / Chamada</th>
+        <th>Status Atual</th>
+        <th>Total</th>
+        <th>Ações</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="pedido : ${pedidos}">
+        <td th:text="${pedido.numeroChamada}">101</td>
+        <td th:text="${pedido.nomeChamada != null ? pedido.nomeChamada : '-'}">-</td>
+        <td th:text="${pedido.status}">RECEBIDO</td>
+        <td th:text="${pedido.valorTotal}">0.00</td>
+        <td>
+            <form th:if="${pedido.status.name() == 'AGUARDANDO_PAGAMENTO'}"
+                  th:action="@{/operacao/pedidos/{id}/status(id=${pedido.id})}" method="post" style="display:inline;">
+                <input type="hidden" name="novoStatus" value="RECEBIDO"/>
+                <button type="submit">Confirmar Pagamento</button>
+            </form>
+
+            <form th:if="${pedido.status.name() == 'RECEBIDO'}"
+                  th:action="@{/operacao/pedidos/{id}/status(id=${pedido.id})}" method="post" style="display:inline;">
+                <input type="hidden" name="novoStatus" value="EM_PREPARO"/>
+                <button type="submit">Iniciar Preparo</button>
+            </form>
+
+            <form th:if="${pedido.status.name() == 'EM_PREPARO'}"
+                  th:action="@{/operacao/pedidos/{id}/status(id=${pedido.id})}" method="post" style="display:inline;">
+                <input type="hidden" name="novoStatus" value="PRONTO"/>
+                <button type="submit">Marcar Pronto</button>
+            </form>
+
+            <form th:if="${pedido.status.name() == 'PRONTO'}"
+                  th:action="@{/operacao/pedidos/{id}/status(id=${pedido.id})}" method="post" style="display:inline;">
+                <input type="hidden" name="novoStatus" value="ENTREGUE"/>
+                <button type="submit">Confirmar Retirada</button>
+            </form>
+
+            <form th:if="${pedido.status.name() == 'AGUARDANDO_PAGAMENTO' or pedido.status.name() == 'RECEBIDO'}"
+                  th:action="@{/operacao/pedidos/{id}/status(id=${pedido.id})}" method="post" style="display:inline;">
+                <input type="hidden" name="novoStatus" value="CANCELADO"/>
+                <button type="submit">Cancelar</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
