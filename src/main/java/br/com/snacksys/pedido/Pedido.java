@@ -13,7 +13,7 @@ public class Pedido {
     private final UUID chaveIdempotencia;
     private final List<ItemPedido> itens;
     private final BigDecimal valorTotal;
-    private final StatusPedido status;
+    private StatusPedido status;
 
     public Pedido(UUID chaveIdempotencia, List<ItemPedido> itens) {
         this.chaveIdempotencia = validarChave(chaveIdempotencia);
@@ -60,5 +60,13 @@ public class Pedido {
 
     public StatusPedido getStatus() {
         return status;
+    }
+
+    public void alterarStatus(StatusPedido novoStatus) {
+        if (!this.status.podeTransicionarPara(novoStatus)) {
+            throw new RegraNegocioException("RN05",
+                    "não é permitido mudar o pedido de " + this.status + " para " + novoStatus);
+        }
+        this.status = novoStatus;
     }
 }
