@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="10">
+    <title>SnackSys - Chamada de Pedidos</title>
+</head>
+<body>
+<h1>Pedidos Prontos para Retirada</h1>
+
+<ul>
+    <li th:each="pedido : ${pedidosProntos}">
+        <strong th:text="'Senha #' + ${pedido.numeroChamada}">Senha #101</strong>
+        <span th:if="${pedido.nomeChamada != null}" th:text="' - ' + ${pedido.nomeChamada}"></span>
+    </li>
+</ul>
+<p th:if="${#lists.isEmpty(pedidosProntos)}">Nenhum pedido pronto no momento.</p>
+</body>
+</html>
