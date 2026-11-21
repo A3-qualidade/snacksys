@@ -220,4 +220,192 @@ class EstoqueServiceTest {
         verify(estoqueRepository, never())
                 .estornarEstoque(anyLong(), anyInt());
     }
+
+    @Test
+    void deveRegistrarEntradaComSucesso() {
+        Long produtoId = 10L;
+        Long funcionarioId = 2L;
+
+        when(produtoRepository.consultarControleEstoque(produtoId))
+                .thenReturn(Optional.of(true));
+
+        when(estoqueRepository.registrarEntrada(produtoId, 5))
+                .thenReturn(1);
+
+        estoqueService.registrarEntrada(
+                produtoId, funcionarioId, 5, "Reposição"
+        );
+
+        verify(estoqueRepository).registrarEntrada(produtoId, 5);
+
+        verify(movimentacaoRepository).save(argThat(m ->
+                m.getTipo() == MovimentacaoEstoque.Tipo.ENTRADA
+                        && m.getQuantidade() == 5
+                        && m.getFuncionarioId().equals(funcionarioId)
+        ));
+    }
+
+    @Test
+    void deveRejeitarEntradaComQuantidadeInvalida() {
+        assertThrows(IllegalArgumentException.class,
+                () -> estoqueService.registrarEntrada(
+                        10L, 2L, 0, "Reposição"
+                ));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> estoqueService.registrarEntrada(
+                        10L, 2L, -5, "Reposição"
+                ));
+
+        verifyNoInteractions(movimentacaoRepository);
+    }
+
+    @Test
+    void deveImpedirEntradaSemEstoqueCadastrado() {
+        when(produtoRepository.consultarControleEstoque(10L))
+                .thenReturn(Optional.of(true));
+
+        when(estoqueRepository.registrarEntrada(10L, 5))
+                .thenReturn(0);
+
+        assertThrows(IllegalStateException.class,
+                () -> estoqueService.registrarEntrada(
+                        10L, 2L, 5, "Reposição"
+                ));
+
+        verify(movimentacaoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveRegistrarAjustePositivo() {
+        when(produtoRepository.consultarControleEstoque(10L))
+                .thenReturn(Optional.of(true));
+
+        when(estoqueRepository.ajustarEstoque(10L, 3))
+                .thenReturn(1);
+
+        estoqueService.ajustarEstoque(
+                10L, 2L, 3, "Correção de inventário"
+        );
+
+        verify(movimentacaoRepository).save(argThat(m ->
+                m.getTipo() == MovimentacaoEstoque.Tipo.AJUSTE
+                        && m.getQuantidade() == 3
+                        && m.getMotivo().equals("Correção de inventário")
+        ));
+    }
+
+    @Test
+    void deveRegistrarAjusteNegativo() {
+        when(produtoRepository.consultarControleEstoque(10L))
+                .thenReturn(Optional.of(true));
+
+        when(estoqueRepository.ajustarEstoque(10L, -2))
+                .thenReturn(1);
+
+        estoqueService.ajustarEstoque(
+                10L, 2L, -2, "Produto danificado"
+        );
+
+        verify(estoqueRepository).ajustarEstoque(10L, -2);
+
+        verify(movimentacaoRepository).save(argThat(m ->
+                m.getTipo() == MovimentacaoEstoque.Tipo.AJUSTE
+                        && m.getQuantidade() == -2
+        ));
+    }
+
+    @Test
+    void deveImpedirAjusteComSaldoInsuficiente() {
+        when(produtoRepository.consultarControleEstoque(10L))
+                .thenReturn(Optional.of(true));
+
+        when(estoqueRepository.ajustarEstoque(10L, -100))
+                .thenReturn(0);
+
+        assertThrows(IllegalStateException.class,
+                () -> estoqueService.ajustarEstoque(
+                        10L, 2L, -100, "Correção"
+                ));
+
+        verify(movimentacaoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveExigirMotivoParaAjuste() {
+        assertThrows(IllegalArgumentException.class,
+                () -> estoqueService.ajustarEstoque(
+                        10L, 2L, 3, null
+                ));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> estoqueService.ajustarEstoque(
+                        10L, 2L, 3, " "
+                ));
+
+        verifyNoInteractions(estoqueRepository);
+    }
+
+    @Test
+    void deveRejeitarAjusteZero() {
+        assertThrows(IllegalArgumentException.class,
+                () -> estoqueService.ajustarEstoque(
+                        10L, 2L, 0, "Correção"
+                ));
+
+        verifyNoInteractions(estoqueRepository);
+    }
+
+    @Test
+    void deveConsultarSaldoComSucesso() {
+        Estoque estoque = mock(Estoque.class);
+
+        when(estoque.getQuantidade()).thenReturn(15);
+        when(estoqueRepository.findByProdutoId(10L))
+                .thenReturn(Optional.of(estoque));
+
+        assertEquals(15, estoqueService.consultarSaldo(10L));
+    }
+
+    @Test
+    void deveRejeitarConsultaDeSaldoSemProduto() {
+        assertThrows(IllegalArgumentException.class,
+                () -> estoqueService.consultarSaldo(null));
+    }
+
+    @Test
+    void deveRejeitarConsultaDeSaldoInexistente() {
+        when(estoqueRepository.findByProdutoId(10L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(IllegalStateException.class,
+                () -> estoqueService.consultarSaldo(10L));
+    }
+
+    @Test
+    void deveConsultarHistoricoComSucesso() {
+        when(movimentacaoRepository
+                .findByProdutoIdOrderByCriadoEmDesc(10L))
+                .thenReturn(java.util.List.of());
+
+        assertTrue(estoqueService.consultarHistorico(10L).isEmpty());
+    }
+
+    @Test
+    void deveRejeitarHistoricoSemProduto() {
+        assertThrows(IllegalArgumentException.class,
+                () -> estoqueService.consultarHistorico(null));
+    }
+
+    @Test
+    void deveConsultarEstoqueBaixo() {
+        when(estoqueRepository.consultarEstoqueBaixo())
+                .thenReturn(java.util.List.of());
+
+        assertTrue(estoqueService.consultarEstoqueBaixo().isEmpty());
+
+        verify(estoqueRepository).consultarEstoqueBaixo();
+    }
+
+
 }

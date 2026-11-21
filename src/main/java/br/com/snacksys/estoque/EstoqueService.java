@@ -161,4 +161,125 @@ public class EstoqueService {
 
         movimentacaoRepository.save(movimentacao);
     }
+
+    // Registra entrada de produtos no estoque
+    @Transactional
+    public void registrarEntrada(
+            Long produtoId,
+            Long funcionarioId,
+            int quantidade,
+            String motivo
+    ) {
+        validarQuantidade(quantidade);
+
+        if (funcionarioId == null) {
+            throw new IllegalArgumentException(
+                    "O funcionário é obrigatório"
+            );
+        }
+
+        produtoControlaEstoque(produtoId);
+
+        int linhasAtualizadas =
+                estoqueRepository.registrarEntrada(produtoId, quantidade);
+
+        if (linhasAtualizadas == 0) {
+            throw new IllegalStateException(
+                    "Estoque não cadastrado para o produto: " + produtoId
+            );
+        }
+
+        movimentacaoRepository.save(new MovimentacaoEstoque(
+                produtoId,
+                funcionarioId,
+                MovimentacaoEstoque.Tipo.ENTRADA,
+                quantidade,
+                motivo
+        ));
+    }
+
+    // Ajusta o saldo e registra o motivo
+    @Transactional
+    public void ajustarEstoque(
+            Long produtoId,
+            Long funcionarioId,
+            int diferenca,
+            String motivo
+    ) {
+        if (funcionarioId == null) {
+            throw new IllegalArgumentException(
+                    "O funcionário é obrigatório"
+            );
+        }
+
+        if (diferenca == 0) {
+            throw new IllegalArgumentException(
+                    "O ajuste não pode ser zero"
+            );
+        }
+
+        if (motivo == null || motivo.isBlank()) {
+            throw new IllegalArgumentException(
+                    "O motivo do ajuste é obrigatório"
+            );
+        }
+
+        produtoControlaEstoque(produtoId);
+
+        int linhasAtualizadas =
+                estoqueRepository.ajustarEstoque(produtoId, diferenca);
+
+        if (linhasAtualizadas == 0) {
+            throw new IllegalStateException(
+                    "Estoque não encontrado ou saldo insuficiente"
+            );
+        }
+
+        movimentacaoRepository.save(new MovimentacaoEstoque(
+                produtoId,
+                funcionarioId,
+                MovimentacaoEstoque.Tipo.AJUSTE,
+                diferenca,
+                motivo
+        ));
+    }
+
+    // Consulta o saldo atual de um produto
+    @Transactional(readOnly = true)
+    public int consultarSaldo(Long produtoId) {
+        if (produtoId == null) {
+            throw new IllegalArgumentException(
+                    "O ID do produto é obrigatório"
+            );
+        }
+
+        return estoqueRepository.findByProdutoId(produtoId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Estoque não encontrado para o produto: " + produtoId
+                ))
+                .getQuantidade();
+    }
+
+    // Consulta o histórico de movimentações de um produto
+    @Transactional(readOnly = true)
+    public java.util.List<MovimentacaoEstoque> consultarHistorico(
+            Long produtoId
+    ) {
+        if (produtoId == null) {
+            throw new IllegalArgumentException(
+                    "O ID do produto é obrigatório"
+            );
+        }
+
+        return movimentacaoRepository
+                .findByProdutoIdOrderByCriadoEmDesc(produtoId);
+    }
+
+    // Consulta produtos com estoque baixo
+    @Transactional(readOnly = true)
+    public java.util.List<Estoque> consultarEstoqueBaixo() {
+        return estoqueRepository.consultarEstoqueBaixo();
+    }
+
+
 }

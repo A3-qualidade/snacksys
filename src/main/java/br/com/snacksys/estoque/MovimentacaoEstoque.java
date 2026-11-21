@@ -52,6 +52,7 @@ public class MovimentacaoEstoque {
     protected MovimentacaoEstoque() {
     }
 
+    // Baixa de venda e estorno de pedido
     public MovimentacaoEstoque(
             Long produtoId,
             Long pedidoId,
@@ -84,6 +85,54 @@ public class MovimentacaoEstoque {
         this.criadoEm = OffsetDateTime.now();
     }
 
+    // Entrada e ajuste manual de estoque
+    public MovimentacaoEstoque(
+            Long produtoId,
+            Long funcionarioId,
+            Tipo tipo,
+            int quantidade,
+            String motivo
+    ) {
+        if (produtoId == null || funcionarioId == null) {
+            throw new IllegalArgumentException(
+                    "Produto e funcionário são obrigatórios"
+            );
+        }
+
+        if (tipo != Tipo.ENTRADA && tipo != Tipo.AJUSTE) {
+            throw new IllegalArgumentException(
+                    "Tipo de movimentação manual inválido"
+            );
+        }
+
+        if (quantidade == 0 ||
+                (tipo == Tipo.ENTRADA && quantidade < 0)) {
+            throw new IllegalArgumentException(
+                    "Quantidade incompatível com a movimentação"
+            );
+        }
+
+        if (tipo == Tipo.AJUSTE &&
+                (motivo == null || motivo.isBlank())) {
+            throw new IllegalArgumentException(
+                    "O ajuste de estoque exige um motivo"
+            );
+        }
+
+        if (motivo != null && motivo.length() > 255) {
+            throw new IllegalArgumentException(
+                    "O motivo deve ter no máximo 255 caracteres"
+            );
+        }
+
+        this.produtoId = produtoId;
+        this.funcionarioId = funcionarioId;
+        this.tipo = tipo;
+        this.quantidade = quantidade;
+        this.motivo = motivo;
+        this.criadoEm = OffsetDateTime.now();
+    }
+
     public Long getId() {
         return id;
     }
@@ -96,11 +145,19 @@ public class MovimentacaoEstoque {
         return pedidoId;
     }
 
+    public Long getFuncionarioId() {
+        return funcionarioId;
+    }
+
     public Tipo getTipo() {
         return tipo;
     }
 
     public int getQuantidade() {
         return quantidade;
+    }
+
+    public String getMotivo() {
+        return motivo;
     }
 }

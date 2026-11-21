@@ -22,4 +22,9 @@ public interface MovimentacaoEstoqueRepository
             Long produtoId,
             MovimentacaoEstoque.Tipo tipo
     );
+
+    // Histórico de movimentações de um produto
+    List<MovimentacaoEstoque> findByProdutoIdOrderByCriadoEmDesc(
+            Long produtoId
+    );
 }
