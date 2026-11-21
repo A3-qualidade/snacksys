@@ -356,4 +356,56 @@ class EstoqueServiceTest {
         verifyNoInteractions(estoqueRepository);
     }
 
+    @Test
+    void deveConsultarSaldoComSucesso() {
+        Estoque estoque = mock(Estoque.class);
+
+        when(estoque.getQuantidade()).thenReturn(15);
+        when(estoqueRepository.findByProdutoId(10L))
+                .thenReturn(Optional.of(estoque));
+
+        assertEquals(15, estoqueService.consultarSaldo(10L));
+    }
+
+    @Test
+    void deveRejeitarConsultaDeSaldoSemProduto() {
+        assertThrows(IllegalArgumentException.class,
+                () -> estoqueService.consultarSaldo(null));
+    }
+
+    @Test
+    void deveRejeitarConsultaDeSaldoInexistente() {
+        when(estoqueRepository.findByProdutoId(10L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(IllegalStateException.class,
+                () -> estoqueService.consultarSaldo(10L));
+    }
+
+    @Test
+    void deveConsultarHistoricoComSucesso() {
+        when(movimentacaoRepository
+                .findByProdutoIdOrderByCriadoEmDesc(10L))
+                .thenReturn(java.util.List.of());
+
+        assertTrue(estoqueService.consultarHistorico(10L).isEmpty());
+    }
+
+    @Test
+    void deveRejeitarHistoricoSemProduto() {
+        assertThrows(IllegalArgumentException.class,
+                () -> estoqueService.consultarHistorico(null));
+    }
+
+    @Test
+    void deveConsultarEstoqueBaixo() {
+        when(estoqueRepository.consultarEstoqueBaixo())
+                .thenReturn(java.util.List.of());
+
+        assertTrue(estoqueService.consultarEstoqueBaixo().isEmpty());
+
+        verify(estoqueRepository).consultarEstoqueBaixo();
+    }
+
+
 }
