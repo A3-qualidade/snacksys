@@ -138,4 +138,24 @@ class PedidoControllerTest {
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].nomeChamada").value("Carlos"));
     }
+
+    @Test
+    void deveRetornar400QuandoItensForNulo() throws Exception {
+        when(pedidoService.criarPedido(any(), any(), any(), any()))
+                .thenThrow(new RegraNegocioException("RN01", "Pedido deve possuir ao menos um item"));
+
+        String jsonSemItens = """
+                {
+                  "chaveIdempotencia": "11111111-1111-1111-1111-111111111111",
+                  "numeroChamada": 10,
+                  "nomeChamada": "Teste"
+                }
+                """;
+
+        mockMvc.perform(post("/pedidos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonSemItens))
+                .andExpect(status().isBadRequest());
+    }
+
 }
