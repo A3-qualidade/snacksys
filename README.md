@@ -65,6 +65,19 @@ O Flyway realizará automaticamente as migrações pendentes do banco de dados.
 
 A aplicação estará disponível em http://localhost:8080.
 
+### Pagamento simulado
+
+Após criar um pedido, registre o pagamento em `POST /pedidos/{id}/pagamentos` com uma das formas `PIX`, `CARTAO_CREDITO` ou `CARTAO_DEBITO`. O campo `resultado` simula a resposta do pagamento (`APROVADO` ou `RECUSADO`); quando aprovado, o pedido avança automaticamente para `RECEBIDO`. Exemplo:
+
+```json
+{
+  "forma": "PIX",
+  "resultado": "APROVADO"
+}
+```
+
+Use `GET /pedidos/{id}/pagamentos` para consultar as tentativas registradas.
+
 ### Conexão pelo DBeaver
 
 | Configuração | Valor |
